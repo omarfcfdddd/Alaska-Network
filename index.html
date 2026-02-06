@@ -47,7 +47,7 @@
             border: 1px solid var(--primary-blue);
             color: white;
             padding: 8px 15px;
-            border-radius: 5px;
+            border-radius: 50px;
             cursor: pointer;
             font-family: 'Cairo', sans-serif;
             transition: var(--transition);
@@ -59,10 +59,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: 25px;
             padding: 80px 20px 40px;
             z-index: 101;
-            flex-wrap: wrap; /* هذا يجعل العناصر تنزل تحت بعضها في الجوال */
+            flex-wrap: wrap;
         }
 
         .stat-box { 
@@ -71,21 +71,23 @@
             gap: 12px; 
             cursor: pointer; 
             background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 12px;
-            min-width: 180px;
+            min-width: 190px;
             justify-content: center;
+            border: 1px solid rgba(70, 176, 240, 0.1);
+            transition: var(--transition);
         }
+        .stat-box:hover { border-color: var(--primary-blue); background: rgba(70, 176, 240, 0.05); }
 
         .stat-content { 
             transition: var(--transition); 
             text-align: right; 
         }
 
-        .stat-content h4 { margin: 0; font-size: 14px; }
-        .stat-content p { margin: 0; font-size: 11px; color: var(--primary-blue); }
+        .stat-content h4 { margin: 0; font-size: 14px; white-space: nowrap; }
+        .stat-content p { margin: 0; font-size: 11px; color: var(--primary-blue); font-weight: bold; }
 
-        /* تعديل خاص للجوال: إظهار المحتوى دائماً لأن الـ Hover لا يعمل */
         @media (min-width: 1024px) {
             .stat-content { opacity: 0; transform: translateX(15px); }
             .stat-box:hover .stat-content { opacity: 1; transform: translateX(0); }
@@ -124,8 +126,6 @@
             margin-bottom: 30px;
         }
 
-        .welcome-card h1 { font-size: 1.5rem; margin-bottom: 10px; }
-
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -158,11 +158,10 @@
             font-size: 14px;
         }
 
-        /* تنسيقات إضافية للجوال الصغير جداً */
         @media (max-width: 480px) {
             .main-header { padding-top: 100px; flex-direction: column; }
             .stat-box { width: 100%; max-width: 250px; }
-            .main-logo { order: -1; margin-bottom: 20px; } /* شعار أولاً */
+            .main-logo { order: -1; margin-bottom: 20px; }
         }
 
         body.en { direction: ltr; }
@@ -178,10 +177,10 @@
     <div class="main-header">
         <div class="stat-box" onclick="copyIP()">
             <div class="stat-content">
-                <h4 id="player-count">18 ONLINE</h4>
-                <p>ALASKAMC.CAMDVR.ORG</p>
+                <h4 id="player-count">جارِ الفحص...</h4>
+                <p>ALASKAMC.DDNS.NET</p>
             </div>
-            <div class="stat-icon"><i class="fas fa-copy"></i></div>
+            <div class="stat-icon"><i class="fas fa-play"></i></div>
         </div>
 
         <img src="https://mayorstudio.xyz/i/KpGc/Alaska-Logo.png" class="main-logo" alt="Alaska Logo">
@@ -224,7 +223,33 @@
     </div>
 
     <script>
+        const SERVER_IP = "alaskamc.ddns.net";
+        const SERVER_PORT = "26378";
         let currentLang = 'ar';
+
+        // وظيفة جلب عدد اللاعبين الحقيقي
+        async function updatePlayerCount() {
+            try {
+                const response = await fetch(`https://api.mcstatus.io/v2/status/java/${SERVER_IP}:${SERVER_PORT}`);
+                const data = await response.json();
+                
+                const display = document.getElementById('player-count');
+                if (data.online) {
+                    display.innerText = `${data.players.online} ONLINE`;
+                } else {
+                    display.innerText = "OFFLINE";
+                    display.style.color = "#ff4d4d";
+                }
+            } catch (error) {
+                console.error("Error fetching status:", error);
+                document.getElementById('player-count').innerText = "ERROR";
+            }
+        }
+
+        // تشغيل الجلب عند الريفريش وكل 30 ثانية
+        updatePlayerCount();
+        setInterval(updatePlayerCount, 30000);
+
         const texts = {
             ar: {
                 langBtn: "English",
@@ -272,7 +297,6 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             flakes = [];
-            // تقليل عدد الثلج في الشاشات الصغيرة لتحسين الأداء
             let count = window.innerWidth < 768 ? 40 : 70;
             for (let i = 0; i < count; i++) {
                 flakes.push({
@@ -310,7 +334,7 @@
         drawSnow();
 
         function copyIP() {
-            const ip = "alaskamc.camdvr.org:26378";
+            const ip = `${SERVER_IP}:${SERVER_PORT}`;
             navigator.clipboard.writeText(ip).then(() => {
                 alert(currentLang === 'ar' ? "تم نسخ الآي بي: " + ip : "IP Copied: " + ip);
             });
